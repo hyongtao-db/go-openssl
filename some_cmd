@@ -1,0 +1,10 @@
+#命令行加密
+openssl enc -aes-256-cbc -base64 -pass pass:z4yH36a6zerhfE5427ZV -md sha256 -in plain.txt -out encrypted.txt -pbkdf2
+#命令行解密
+openssl enc -aes-256-cbc -d -base64 -pass pass:z4yH36a6zerhfE5427ZV -md sha256 -in encrypted.txt -out decrypted.txt -pbkdf2
+
+
+openssl enc -aes-256-cbc -d -base64 -pass pass:z4yH36a6zerhfE5427ZV -md sha256 -in /dev/stdin -pbkdf2
+
+
+gcc main.c -lcrypto -o a.out

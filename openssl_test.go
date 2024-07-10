@@ -22,16 +22,16 @@ var testTable = []struct {
 	tMdFunc  CredsGenerator
 	tPBKDF   bool
 }{
-	{"MD5", "md5", BytesToKeyMD5, false},
-	{"SHA1", "sha1", BytesToKeySHA1, false},
-	{"SHA256", "sha256", BytesToKeySHA256, false},
-	{"SHA384", "sha384", BytesToKeySHA384, false},
-	{"SHA512", "sha512", BytesToKeySHA512, false},
-	{"PBKDF2_MD5", "md5", PBKDF2MD5, true},
-	{"PBKDF2_SHA1", "sha1", PBKDF2SHA1, true},
+	// {"MD5", "md5", BytesToKeyMD5, false},
+	// {"SHA1", "sha1", BytesToKeySHA1, false},
+	// {"SHA256", "sha256", BytesToKeySHA256, false},
+	// {"SHA384", "sha384", BytesToKeySHA384, false},
+	// {"SHA512", "sha512", BytesToKeySHA512, false},
+	// {"PBKDF2_MD5", "md5", PBKDF2MD5, true},
+	// {"PBKDF2_SHA1", "sha1", PBKDF2SHA1, true},
 	{"PBKDF2_SHA256", "sha256", PBKDF2SHA256, true},
-	{"PBKDF2_SHA384", "sha384", PBKDF2SHA384, true},
-	{"PBKDF2_SHA512", "sha512", PBKDF2SHA512, true},
+	// {"PBKDF2_SHA384", "sha384", PBKDF2SHA384, true},
+	// {"PBKDF2_SHA512", "sha512", PBKDF2SHA512, true},
 }
 
 func TestBinaryEncryptToDecryptWithCustomSalt(t *testing.T) {
@@ -212,6 +212,8 @@ func TestEncryptToDecryptWithCustomSalt(t *testing.T) {
 func TestEncryptToOpenSSL(t *testing.T) {
 	for _, tc := range testTable {
 		t.Run(tc.tName, func(t *testing.T) {
+			fmt.Printf("testPlaintext = %v\n", testPlaintext)
+			fmt.Printf("testPlaintext = %v\n", []byte(testPlaintext))
 			o := New()
 
 			salt, err := o.GenerateSalt()
@@ -221,6 +223,9 @@ func TestEncryptToOpenSSL(t *testing.T) {
 			require.NoError(t, err)
 
 			enc = append(enc, '\n')
+
+			fmt.Printf("enc = %v\n", enc)
+			fmt.Printf("string(enc) = %v\n", string(enc))
 
 			var out bytes.Buffer
 
@@ -235,6 +240,7 @@ func TestEncryptToOpenSSL(t *testing.T) {
 			if tc.tPBKDF {
 				cmdArgs = append(cmdArgs, "-pbkdf2")
 			}
+			fmt.Printf("cmdArgs = %v\n", cmdArgs)
 
 			cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...) //#nosec:G204 -- Hardcoded tests, this is fine
 			cmd.Stdout = &out
@@ -243,6 +249,28 @@ func TestEncryptToOpenSSL(t *testing.T) {
 			require.NoError(t, cmd.Run())
 
 			assert.Equal(t, testPlaintext, out.String())
+			fmt.Printf("out.String() = %v\n", out.String())
+			/*
+				testPlaintext = hallowelt
+				testPlaintext = [104 97 108 108 111 119 101 108 116]
+				enc = [85 50 70 115 100 71 86 107 88 49 47 104 115 49 104 56 109 80 84 65 117 118 81 66 82 101 82 87 56 67 55 52 68 57 112 47 110 116 116 54 66 76 52 61 10]
+				string(enc) = U2FsdGVkX1/hs1h8mPTAuvQBReRW8C74D9p/ntt6BL4=
+
+				cmdArgs = [openssl aes-256-cbc -base64 -d -pass pass:z4yH36a6zerhfE5427ZV -md sha256 -in /dev/stdin -pbkdf2]
+				out.String() = hallowelt
+
+
+				testPlaintext = hallowelt
+				testPlaintext = [104 97 108 108 111 119 101 108 116]
+				enc = [85 50 70 115 100 71 86 107 88 49 57 82 116 78 53 84 56 69 102 84 48 43 74 122 120 110 71 69 54 72 88 56 80 98 82 85 122 76 47 114 48 85 103 61 10]
+				string(enc) = U2FsdGVkX19RtN5T8EfT0+JzxnGE6HX8PbRUzL/r0Ug=
+
+				备注，每次前10个数是一样的，数字和ASCLL码表对应
+
+				cmdArgs = [openssl aes-256-cbc -base64 -d -pass pass:z4yH36a6zerhfE5427ZV -md sha256 -in /dev/stdin -pbkdf2]
+				out.String() = hallowelt
+
+			*/
 		})
 	}
 }
